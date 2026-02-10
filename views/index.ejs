@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>CRUD Blindado</title>
+</head>
+<body class="container py-5">
+    <h2>Registro Seguro (Node + Supabase)</h2>
+    
+    <form action="/agregar" method="POST" class="row g-3 my-4">
+        <div class="col-auto">
+            <input type="text" name="nombre" class="form-control" placeholder="Nombre" required>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Añadir</button>
+        </div>
+    </form>
+
+    <table class="table table-striped border shadow-sm">
+        <thead class="table-dark">
+            <tr><th>ID</th><th>Nombre</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+            <% registros.forEach(reg => { %>
+                <tr>
+                    <td><%= reg.id %></td>
+                    <td><%= reg.nombre %></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="abrirModal('<%= reg.id %>', '<%= reg.nombre %>')">Editar</button>
+                        <form action="/eliminar" method="POST" class="d-inline">
+                            <input type="hidden" name="id" value="<%= reg.id %>">
+                            <button class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+
+    <div class="modal fade" id="modalEditar" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="/editar" method="POST" class="modal-content">
+                <div class="modal-header"><h5>Editar Registro</h5></div>
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="edit_id">
+                    <input type="text" name="nuevoNombre" id="edit_nombre" class="form-control" required>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-success">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function abrirModal(id, nombre) {
+            document.getElementById('edit_id').value = id;
+            document.getElementById('edit_nombre').value = nombre;
+            new bootstrap.Modal(document.getElementById('modalEditar')).show();
+        }
+    </script>
+</body>
+</html>
