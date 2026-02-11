@@ -3,21 +3,27 @@ const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const helmet = require('helmet');
 const { body, validationResult } = require('express-validator');
-const rateLimit = require('express-rate-limit'); // Nueva librería
+const rateLimit = require('express-rate-limit');
 
 const app = express();
+
+// 1. Configuración de Proxy (Indispensable para Render)
+// Esto permite que el Rate Limit vea la IP real del usuario y no la de Render
+app.set('trust proxy', 1); 
+
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
-// 1. LIMITADOR DE TASA (Defensa contra spam masivo)
+// 2. Definición del Limitador
 const createLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // Ventana de 15 minutos
-    max: 10, // Máximo 10 registros por cada dirección IP
+    windowMs: 15 * 60 * 1000, 
+    max: 10, 
     message: "Has enviado demasiados registros. Por seguridad, espera 15 minutos.",
     standardHeaders: true, 
     legacyHeaders: false,
 });
 
-// Seguridad de cabeceras ajustada para Bootstrap y Supabase
+// 3. Seguridad de cabeceras (CSP)
+// Aquí quitamos el duplicado y dejamos solo la configuración que permite Bootstrap
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -41,14 +47,13 @@ app.get('/', async (req, res) => {
     res.render('index', { registros: data || [] });
 });
 
-// Aplicamos el limitador específicamente a la ruta de creación
 app.post('/agregar', createLimiter, 
     body('nombre').trim().escape().isLength({ min: 1, max: 50 }), 
     async (req, res) => {
         
-        // 2. TRAMPA HONEYPOT: Si este campo tiene algo, es un BOT
+        // TRAMPA HONEYPOT: Bloqueo inmediato de bots
         if (req.body.especial_field && req.body.especial_field.length > 0) {
-            console.log("ATAQUE DE BOT DETECTADO Y BLOQUEADO");
+            console.log("BOT BLOQUEADO");
             return res.status(403).send("Error de validación (Bot detectado)");
         }
 
