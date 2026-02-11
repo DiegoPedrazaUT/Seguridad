@@ -3,38 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>CRUD Blindado</title>
+    <title>CRUD</title>
 </head>
 <body class="container py-5 bg-light">
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form action="/agregar" method="POST" class="row g-3">
-                <div class="col-auto">
-                    <input type="text" name="nombre" class="form-control" placeholder="Nuevo registro" required>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary">Registrar</button>
-                </div>
-            </form>
-        </div>
+    <h2 class="mb-4 text-center">CRUD</h2>
+
+    <div class="card card-body mb-4 shadow-sm border-0">
+        <form action="/agregar" method="POST" class="row g-2">
+            
+            <div style="display:none !important;" aria-hidden="true">
+                <input type="text" name="especial_field" tabindex="-1" autocomplete="off">
+            </div>
+
+            <div class="col-sm-10">
+                <input type="text" name="nombre" class="form-control" placeholder="Escriba un nombre" required>
+            </div>
+            <div class="col-sm-2">
+                <button type="submit" class="btn btn-primary w-100">Registrar</button>
+            </div>
+        </form>
     </div>
 
-    <table class="table table-bordered bg-white shadow-sm">
+    <table class="table table-hover shadow-sm bg-white rounded overflow-hidden">
         <thead class="table-dark">
             <tr>
-                <th>Nombre</th>
-                <th class="text-center">Acciones</th>
+                <th>Nombre Registrado</th>
+                <th class="text-end">Acciones</th>
             </tr>
         </thead>
         <tbody>
             <% registros.forEach(reg => { %>
                 <tr>
-                    <td><%= reg.nombre %></td>
-                    <td class="text-center">
-                        <button class="btn btn-warning btn-sm" onclick="abrirEdicion('<%= reg.id %>', '<%= reg.nombre %>')">Editar</button>
+                    <td class="align-middle"><%= reg.nombre %></td>
+                    <td class="text-end">
+                        <button class="btn btn-warning btn-sm" onclick="activarEdicion('<%= reg.id %>', '<%= reg.nombre %>')">Editar</button>
                         <form action="/eliminar" method="POST" class="d-inline">
                             <input type="hidden" name="id" value="<%= reg.id %>">
-                            <button class="btn btn-danger btn-sm">Eliminar</button>
+                            <button class="btn btn-danger btn-sm">Borrar</button>
                         </form>
                     </td>
                 </tr>
@@ -42,13 +47,16 @@
         </tbody>
     </table>
 
-    <div class="modal fade" id="modalEdicion" tabindex="-1">
+    <div class="modal fade" id="ventanaEditar" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <form action="/editar" method="POST" class="modal-content">
-                <div class="modal-header"><h5>Actualizar Registro</h5></div>
+                <div class="modal-header">
+                    <h5 class="modal-title">Actualizar Nombre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
                 <div class="modal-body">
-                    <input type="hidden" name="id" id="target_id">
-                    <input type="text" name="nuevoNombre" id="target_nombre" class="form-control" required>
+                    <input type="hidden" name="id" id="form_id">
+                    <input type="text" name="nuevoNombre" id="form_nombre" class="form-control" required>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-success">Guardar Cambios</button>
@@ -59,11 +67,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function abrirEdicion(id, nombre) {
-            document.getElementById('target_id').value = id;
-            document.getElementById('target_nombre').value = nombre;
-            var bootstrapModal = new bootstrap.Modal(document.getElementById('modalEdicion'));
-            bootstrapModal.show();
+        function activarEdicion(id, nombre) {
+            document.getElementById('form_id').value = id;
+            document.getElementById('form_nombre').value = nombre;
+            var miModal = new bootstrap.Modal(document.getElementById('ventanaEditar'));
+            miModal.show();
         }
     </script>
 </body>
