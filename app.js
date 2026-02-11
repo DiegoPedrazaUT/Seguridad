@@ -16,8 +16,8 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 // 2. Definición del Limitador
 const createLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, 
-    max: 10, 
-    message: "Has enviado demasiados registros. Por seguridad, espera 15 minutos.",
+    max: 6, 
+    message: "Has enviado demasiados registros. Por seguridad, espera 1 minuto y recarga.",
     standardHeaders: true, 
     legacyHeaders: false,
 });
