@@ -16,6 +16,16 @@ const PORT = process.env.PORT || 3000;
 const ipsBloqueadas = new Set();
 
 app.set('trust proxy', 1);
+
+const getRealIp = (req) => {
+ 
+    const xForwardedFor = req.headers['x-forwarded-for'];
+    if (xForwardedFor) {
+        return xForwardedFor.split(',')[0].trim();
+    }
+    return req.ip;
+};
+
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 app.use(session({
@@ -31,13 +41,14 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-    if (ipsBloqueadas.has(req.ip)) {
+    const clientIp = getRealIp(req);
+    if (ipsBloqueadas.has(clientIp)) {
         return res.status(403).render('error', {
             titulo: "ACCESO DENEGADO",
             mensaje: "Tu dirección IP ha sido marcada por actividad maliciosa. No puedes acceder a este sitio.",
             imagen: "https://media.tenor.com/MiQgM3IO5AgAAAAj/shitpost.gif",
             baneado: true,
-            ip: req.ip
+            ip: clientIp
         });
     }
     next();
@@ -82,15 +93,16 @@ app.get('/captcha', (req, res) => {
 
 
 app.get('/api', (req, res) => {
-    console.log(`🚨 HACKER CAZADO: IP ${req.ip} baneada.`);
-    ipsBloqueadas.add(req.ip); // ¡BANEADO!
+    const hackerIp = getRealIp(req);
+    console.log(`HACKER CAZADO: IP ${hackerIp} baneada.`);
+    ipsBloqueadas.add(hackerIp);
     
     res.status(403).render('error', {
         titulo: "¡TE ATRAPAMOS!",
         mensaje: "Has intentado acceder a una ruta restringida. El sistema de defensa ha bloqueado tu IP.",
         imagen: "https://media.tenor.com/aHacr-D6mfcAAAAM/laughing-cat.gif", // GIF de Policia
         baneado: true,
-        ip: req.ip
+        ip: hackerIp
     });
 });
 
