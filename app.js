@@ -120,7 +120,6 @@ app.post('/agregar', createLimiter, csrfProtection,
     body('nombre').trim().escape().isLength({ min: 1, max: 50 }),
     async (req, res) => {
         
-        // HONEYPOT (Campo oculto)
         if (req.body.especial_field && req.body.especial_field.length > 0) {
             ipsBloqueadas.add(req.ip); 
             return res.status(403).render('error', {
@@ -166,10 +165,29 @@ app.post('/agregar', createLimiter, csrfProtection,
         res.redirect('/');
 });
 
-app.post('/editar', csrfProtection, body('id').isInt(), async (req, res) => {
-    const { id, nuevoNombre } = req.body;
-    await supabase.from('registros').update({ nombre: nuevoNombre }).eq('id', id);
-    res.redirect('/');
+app.post('/editar', csrfProtection, 
+    body('id').isInt(), 
+    body('nuevoNombre').trim().escape().isLength({ min: 1, max: 50 }), 
+    async (req, res) => {
+        
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            const hackerIp = getRealIp(req);
+            console.log(`🚨 INTENTO DE INYECCIÓN EN /editar. Bloqueando IP: ${hackerIp}`);
+            ipsBloqueadas.add(hackerIp);
+            
+            return res.status(403).render('error', {
+                titulo: "¡INTENTO DE INYECCIÓN!",
+                mensaje: "Se ha detectado una anomalía en los datos. Tu IP ha sido bloqueada.",
+                imagen: "https://media.tenor.com/LeRaWzL6NnAAAAAC/anime-police.gif",
+                baneado: true,
+                ip: hackerIp
+            });
+        }
+
+        const { id, nuevoNombre } = req.body;
+        await supabase.from('registros').update({ nombre: nuevoNombre }).eq('id', id);
+        res.redirect('/');
 });
 
 app.post('/eliminar', csrfProtection, body('id').isInt(), async (req, res) => {
